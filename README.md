@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ Base Pulse
+
+Real-time NFT traffic analytics on **Base chain** — built as a **Farcaster Mini App**.
+
+![Base Pulse Dashboard](https://img.shields.io/badge/Base-0052FF?style=for-the-badge&logo=coinbase&logoColor=white)
+![Farcaster](https://img.shields.io/badge/Farcaster-8B5CF6?style=for-the-badge&logo=farcaster&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+
+## Features
+
+- **📊 Live Dashboard** — Real-time mints, transfers, volume, and floor price changes
+- **📈 Volume Trend** — 7-day SVG line chart with gradient fill
+- **🏆 Top Collections** — Ranked by 24h volume with floor prices
+- **⚡ Activity Feed** — Color-coded live feed of mints, transfers, and sales
+- **🐋 Whale Tracker** — Large transactions (≥1 ETH) aggregated by wallet
+
+## Tech Stack
+
+| Layer | Technology |
+|:---|:---|
+| Framework | Next.js 16 (App Router, TypeScript) |
+| Farcaster | `@farcaster/frame-sdk` (Mini App / Frames v2) |
+| Data | Alchemy NFT API v3 (Base chain) |
+| Styling | Vanilla CSS (dark glassmorphism) |
+| Deploy | Vercel |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- Alchemy API Key ([free at dashboard.alchemy.com](https://dashboard.alchemy.com))
+- Farcaster account (for Mini App publishing)
+
+### Setup
 
 ```bash
+# Clone the repo
+git clone https://github.com/ufhouck/basepulse.git
+cd basepulse
+
+# Install dependencies
+npm install
+
+# Copy environment template
+cp .env.example .env.local
+
+# Add your Alchemy API key to .env.local
+# ALCHEMY_API_KEY=your_key_here
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Deploy to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+vercel
 
-## Learn More
+# Set environment variable
+vercel env add ALCHEMY_API_KEY
+```
 
-To learn more about Next.js, take a look at the following resources:
+After deployment, update `public/.well-known/farcaster.json` with your Vercel domain and Farcaster account association signature.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Farcaster Mini App
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This app is designed to run inside Farcaster clients (like Warpcast) as a Mini App. To test:
 
-## Deploy on Vercel
+1. Enable **Developer Mode** in Warpcast settings
+2. Open the **Frame Playground**
+3. Enter your deployed URL
+4. The app will load with live Base NFT data
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── globals.css            # Design system
+│   ├── layout.tsx             # Root layout + SEO
+│   ├── page.tsx               # Entry → Dashboard
+│   └── api/nft/               # Server-side API routes
+│       ├── collections/       # Top collections
+│       ├── activity/          # Live activity feed
+│       └── stats/             # Stats + volumes + whales
+├── components/
+│   ├── Dashboard.tsx          # Main container
+│   ├── StatsOverview.tsx      # KPI cards
+│   ├── VolumeChart.tsx        # SVG chart
+│   ├── TopCollections.tsx     # Rankings
+│   ├── ActivityFeed.tsx       # Live feed
+│   └── WhaleTracker.tsx       # Whale activity
+├── hooks/                     # React hooks for data fetching
+├── lib/                       # API client + utilities
+└── types/                     # TypeScript definitions
+```
+
+## License
+
+MIT
+
+## Credits
+
+- [Alchemy](https://alchemy.com) — NFT API
+- [Farcaster](https://farcaster.xyz) — Social protocol
+- [Base](https://base.org) — L2 network

@@ -1,0 +1,17 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Base Pulse",
+    "iconUrl": "https://YOUR_VERCEL_DOMAIN/icon.png",
+    "homeUrl": "https://YOUR_VERCEL_DOMAIN",
+    "splashImageUrl": "https://YOUR_VERCEL_DOMAIN/splash.png",
+    "splashBackgroundColor": "#06070f",
+    "tags": ["nft", "base", "analytics", "tracker", "defi"],
+    "requiredChains": ["eip155:8453"]
+  },
+  "accountAssociation": {
+    "header": "REPLACE_WITH_YOUR_HEADER",
+    "payload": "REPLACE_WITH_YOUR_PAYLOAD",
+    "signature": "REPLACE_WITH_YOUR_SIGNATURE"
+  }
+}
