@@ -16,7 +16,7 @@ export async function getTopCollections(limit = 10): Promise<TopCollection[]> {
   try {
     // Fetch collections on Base chain
     const res = await fetch(
-      `${OPENSEA_API_URL}/collections?chain=base&limit=${limit}&order_by=market_cap`,
+      `${OPENSEA_API_URL}/collections?chain=base&limit=${limit}&order_by=one_day_volume`,
       {
         headers: getHeaders(),
         next: { revalidate: 120 },
@@ -144,7 +144,7 @@ export async function getDailyVolumes(days = 7): Promise<VolumeDataPoint[]> {
   try {
     // Fetch top collections and use their interval data
     const res = await fetch(
-      `${OPENSEA_API_URL}/collections?chain=base&limit=20&order_by=market_cap`,
+      `${OPENSEA_API_URL}/collections?chain=base&limit=20&order_by=one_day_volume`,
       {
         headers: getHeaders(),
         next: { revalidate: 300 },
@@ -270,7 +270,7 @@ export async function getStats(): Promise<NFTStats> {
   try {
     // Use real collection stats (one_day intervals) for accurate data
     const res = await fetch(
-      `${OPENSEA_API_URL}/collections?chain=base&limit=20&order_by=market_cap`,
+      `${OPENSEA_API_URL}/collections?chain=base&limit=20&order_by=one_day_volume`,
       { headers: getHeaders(), next: { revalidate: 60 } }
     );
 

@@ -813,13 +813,54 @@ body {
 
 .watchlist-item {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
   border-bottom: 1px solid #ccc;
 }
 
 .watchlist-item:last-child { border-bottom: none; }
+
+.watchlist-item__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.watchlist-item__stats {
+  display: flex;
+  gap: 0;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  margin-left: 36px;
+}
+
+.watchlist-item__stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 4px;
+  border-right: 1px solid #ccc;
+}
+
+.watchlist-item__stat:last-child { border-right: none; }
+
+.watchlist-item__stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.watchlist-item__stat-value {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.stat--up { color: var(--green); }
+.stat--down { color: var(--red); }
 
 .watchlist-item__image {
   width: 28px;

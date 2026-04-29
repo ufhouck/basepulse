@@ -52,12 +52,40 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState('');
 
+  // Live enrichment data
+  const [enriched, setEnriched] = useState<Record<string, {
+    volume24h: number;
+    sales24h: number;
+    volumeChange: number;
+    floorPrice: number;
+    numOwners: number;
+    totalVolume: number;
+    avgPrice: number;
+  }>>({});
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem('bp_notify_prefs');
       if (saved) setNotifyMap(JSON.parse(saved));
     } catch { /* ignore */ }
   }, []);
+
+  // Fetch live data for watchlist items
+  useEffect(() => {
+    const slugs = sharedItems
+      .map(item => item.collectionSlug)
+      .filter((s): s is string => !!s);
+    if (slugs.length === 0) return;
+
+    fetch('/api/nft/enrich', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slugs }),
+    })
+      .then(r => r.json())
+      .then(data => { if (data.enriched) setEnriched(data.enriched); })
+      .catch(() => { /* silent */ });
+  }, [sharedItems]);
 
   const toggleNotify = useCallback((address: string) => {
     setNotifyMap(prev => {
@@ -323,48 +351,82 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
           </div>
         ) : (
           <div className="watchlist-list">
-            {sharedItems.map(item => (
-              <div key={item.address} className="watchlist-item">
-                {item.image ? (
-                  <img src={item.image} alt={item.name} className="watchlist-item__image" />
-                ) : (
-                  <div className="watchlist-item__image watchlist-item__image--empty" />
-                )}
-                <div className="watchlist-item__info">
-                  <div className="watchlist-item__name">{item.name}</div>
-                  <div className="watchlist-item__meta">
-                    <span>{formatAddress(item.address)}</span>
-                    <span>·</span>
-                    <span>{item.tokenType}</span>
-                    {item.floorPrice !== null && (
-                      <>
+            {sharedItems.map(item => {
+              const live = item.collectionSlug ? enriched[item.collectionSlug] : null;
+              return (
+                <div key={item.address} className="watchlist-item">
+                  <div className="watchlist-item__row">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="watchlist-item__image" />
+                    ) : (
+                      <div className="watchlist-item__image watchlist-item__image--empty" />
+                    )}
+                    <div className="watchlist-item__info">
+                      <div className="watchlist-item__name">{item.name}</div>
+                      <div className="watchlist-item__meta">
+                        <span>{item.tokenType}</span>
                         <span>·</span>
-                        <span>{item.floorPrice.toFixed(4)} ETH</span>
-                      </>
+                        <span>{formatAddress(item.address)}</span>
+                      </div>
+                    </div>
+                    <div className="watchlist-item__actions">
+                      <button
+                        className={`watchlist-item__bell${notifyMap[item.address] !== false ? ' watchlist-item__bell--active' : ''}`}
+                        onClick={() => toggleNotify(item.address)}
+                        title={notifyMap[item.address] !== false ? 'Notifications on' : 'Notifications off'}
+                      >
+                        <svg viewBox="0 0 24 24" fill={notifyMap[item.address] !== false ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                      </button>
+                      <button
+                        className="watchlist-item__remove"
+                        onClick={() => sharedRemove(item.address)}
+                        title="Remove"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </div>
+                  {/* Live Stats Row */}
+                  <div className="watchlist-item__stats">
+                    <div className="watchlist-item__stat">
+                      <span className="watchlist-item__stat-label">Floor</span>
+                      <span className="watchlist-item__stat-value">
+                        {live ? `${live.floorPrice.toFixed(4)} Ξ` : item.floorPrice !== null ? `${item.floorPrice.toFixed(4)} Ξ` : '—'}
+                      </span>
+                    </div>
+                    <div className="watchlist-item__stat">
+                      <span className="watchlist-item__stat-label">24h Vol</span>
+                      <span className="watchlist-item__stat-value">
+                        {live ? `${live.volume24h.toFixed(3)} Ξ` : '—'}
+                      </span>
+                    </div>
+                    <div className="watchlist-item__stat">
+                      <span className="watchlist-item__stat-label">Sales</span>
+                      <span className="watchlist-item__stat-value">
+                        {live ? live.sales24h : '—'}
+                      </span>
+                    </div>
+                    <div className="watchlist-item__stat">
+                      <span className="watchlist-item__stat-label">Owners</span>
+                      <span className="watchlist-item__stat-value">
+                        {live ? live.numOwners.toLocaleString() : '—'}
+                      </span>
+                    </div>
+                    {live && live.volumeChange !== 0 && (
+                      <div className="watchlist-item__stat">
+                        <span className="watchlist-item__stat-label">Change</span>
+                        <span className={`watchlist-item__stat-value ${live.volumeChange > 0 ? 'stat--up' : 'stat--down'}`}>
+                          {live.volumeChange > 0 ? '+' : ''}{live.volumeChange}%
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="watchlist-item__actions">
-                  <button
-                    className={`watchlist-item__bell${notifyMap[item.address] !== false ? ' watchlist-item__bell--active' : ''}`}
-                    onClick={() => toggleNotify(item.address)}
-                    title={notifyMap[item.address] !== false ? 'Notifications on' : 'Notifications off'}
-                  >
-                    <svg viewBox="0 0 24 24" fill={notifyMap[item.address] !== false ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                  </button>
-                  <button
-                    className="watchlist-item__remove"
-                    onClick={() => sharedRemove(item.address)}
-                    title="Remove from watchlist"
-                  >
-                    <TrashIcon />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         </div>
