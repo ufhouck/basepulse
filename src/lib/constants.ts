@@ -1,7 +1,7 @@
 // Constants for Base Pulse
 
-// Alchemy API - Base mainnet
-export const ALCHEMY_BASE_URL = 'https://base-mainnet.g.alchemy.com/v2';
+// OpenSea API v2
+export const OPENSEA_API_URL = 'https://api.opensea.io/api/v2';
 export const BASE_CHAIN_ID = 8453;
 export const REFRESH_INTERVAL = 30000; // 30 seconds
 export const ACTIVITY_REFRESH_INTERVAL = 15000; // 15 seconds

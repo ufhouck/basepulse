@@ -85,8 +85,8 @@ export default function Dashboard() {
           </a>
           {' · '}
           Powered by{' '}
-          <a href="https://reservoir.tools" target="_blank" rel="noopener noreferrer">
-            Reservoir
+          <a href="https://opensea.io" target="_blank" rel="noopener noreferrer">
+            OpenSea
           </a>
         </div>
       </footer>

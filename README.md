@@ -19,8 +19,8 @@ Real-time NFT traffic analytics on **Base chain** — built as a **Farcaster Min
 | Layer | Technology |
 |:---|:---|
 | Framework | Next.js 16 (App Router, TypeScript) |
-| Farcaster | `@farcaster/frame-sdk` (Mini App / Frames v2) |
-| Data | Alchemy NFT API v3 (Base chain) |
+| Farcaster | `@farcaster/miniapp-sdk` (Mini App / Frames v2) |
+| Data | OpenSea API v2 (Base chain) |
 | Styling | Vanilla CSS (dark glassmorphism) |
 | Deploy | Vercel |
 
@@ -29,7 +29,7 @@ Real-time NFT traffic analytics on **Base chain** — built as a **Farcaster Min
 ### Prerequisites
 
 - Node.js 18+
-- Alchemy API Key ([free at dashboard.alchemy.com](https://dashboard.alchemy.com))
+- OpenSea API Key ([get at opensea.io/settings/developer](https://opensea.io/settings/developer))
 - Farcaster account (for Mini App publishing)
 
 ### Setup
@@ -45,8 +45,8 @@ npm install
 # Copy environment template
 cp .env.example .env.local
 
-# Add your Alchemy API key to .env.local
-# ALCHEMY_API_KEY=your_key_here
+# Add your OpenSea API key to .env.local
+# OPENSEA_API_KEY=your_key_here
 
 # Start dev server
 npm run dev
@@ -60,7 +60,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
 vercel
 
 # Set environment variable
-vercel env add ALCHEMY_API_KEY
+vercel env add OPENSEA_API_KEY
 ```
 
 After deployment, update `public/.well-known/farcaster.json` with your Vercel domain and Farcaster account association signature.
@@ -104,6 +104,6 @@ MIT
 
 ## Credits
 
-- [Alchemy](https://alchemy.com) — NFT API
+- [OpenSea](https://opensea.io) — NFT API
 - [Farcaster](https://farcaster.xyz) — Social protocol
 - [Base](https://base.org) — L2 network
