@@ -4,14 +4,10 @@ import { useState, useCallback } from 'react';
 import { useFarcasterSDK } from '@/hooks/useFarcasterSDK';
 import { useNFTStats } from '@/hooks/useNFTStats';
 import { useCollections } from '@/hooks/useCollections';
-import { useActivity } from '@/hooks/useActivity';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import TabNav from './TabNav';
 import StatsOverview from './StatsOverview';
-import VolumeChart from './VolumeChart';
 import TopCollections from './TopCollections';
-import ActivityFeed from './ActivityFeed';
-import WhaleTracker from './WhaleTracker';
 import WatchlistPage from './WatchlistPage';
 import WatchlistPreview from './WatchlistPreview';
 
@@ -39,18 +35,17 @@ const ShareIcon = () => (
 
 export default function Dashboard() {
   const { isReady } = useFarcasterSDK();
-  const { stats, volumes, whales, loading: statsLoading, refetch: refetchStats } = useNFTStats();
+  const { stats, loading: statsLoading, refetch: refetchStats } = useNFTStats();
   const { collections, loading: collectionsLoading, refetch: refetchCollections } = useCollections();
-  const { activity, loading: activityLoading, refetch: refetchActivity } = useActivity();
   const { items: watchlistItems, add: addWatchlistItem, remove: removeWatchlistItem, check: checkWatchlistItem } = useWatchlist();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'watchlist'>('dashboard');
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchStats(), refetchCollections(), refetchActivity()]);
+    await Promise.all([refetchStats(), refetchCollections()]);
     setTimeout(() => setRefreshing(false), 600);
-  }, [refetchStats, refetchCollections, refetchActivity]);
+  }, [refetchStats, refetchCollections]);
 
   const handleShare = useCallback(async () => {
     try {
@@ -61,15 +56,6 @@ export default function Dashboard() {
       });
     } catch (e) {
       console.log('Share not available outside Farcaster', e);
-    }
-  }, []);
-
-  const handleAddApp = useCallback(async () => {
-    try {
-      const { sdk } = await import('@farcaster/miniapp-sdk');
-      await sdk.actions.addMiniApp();
-    } catch (e) {
-      console.log('addMiniApp not available', e);
     }
   }, []);
 
@@ -87,34 +73,32 @@ export default function Dashboard() {
 
   return (
     <div className="app">
-      {/* Header */}
+      {/* macOS-style Header */}
       <header className="header">
+        <div className="header__dots">
+          <div className="win__dot win__dot--red" />
+          <div className="win__dot win__dot--yellow" />
+          <div className="win__dot win__dot--green" />
+        </div>
         <div className="header__brand">
           <div className="header__logo">
             <PulseIcon />
           </div>
-          <div>
-            <div className="header__title">Base Pulse</div>
-            <div className="header__subtitle">NFT Activity on Base</div>
-          </div>
+          <div className="header__title">Base Pulse</div>
         </div>
         <div className="header__actions">
           <div className="header__live">
             <span className="header__live-dot" />
             Live
           </div>
-          <button
-            className="btn-icon"
-            onClick={handleShare}
-            title="Share on Farcaster"
-          >
+          <button className="btn-bevel" onClick={handleShare} title="Share">
             <ShareIcon />
           </button>
           <button
-            className={`btn-icon${refreshing ? ' btn-icon--spinning' : ''}`}
+            className={`btn-bevel${refreshing ? ' btn-bevel--spinning' : ''}`}
             onClick={handleRefresh}
             disabled={refreshing}
-            title="Refresh data"
+            title="Refresh"
           >
             <RefreshIcon />
           </button>
@@ -131,12 +115,50 @@ export default function Dashboard() {
       {/* Tab Content */}
       {activeTab === 'dashboard' ? (
         <>
-          <StatsOverview stats={stats} loading={statsLoading} />
-          <WatchlistPreview items={watchlistItems} onViewAll={() => setActiveTab('watchlist')} />
-          <VolumeChart data={volumes} loading={statsLoading} />
-          <TopCollections collections={collections} loading={collectionsLoading} />
-          <ActivityFeed activity={activity} loading={activityLoading} />
-          <WhaleTracker whales={whales} loading={statsLoading} />
+          {/* Network Stats Window */}
+          <div className="win">
+            <div className="win__titlebar">
+              <div className="win__dots">
+                <div className="win__dot win__dot--red" />
+                <div className="win__dot win__dot--yellow" />
+                <div className="win__dot win__dot--green" />
+              </div>
+              <div className="win__title">Network Stats</div>
+            </div>
+            <StatsOverview stats={stats} loading={statsLoading} />
+          </div>
+
+          {/* Watching Window */}
+          {watchlistItems.length > 0 && (
+            <div className="win">
+              <div className="win__titlebar">
+                <div className="win__dots">
+                  <div className="win__dot win__dot--red" />
+                  <div className="win__dot win__dot--yellow" />
+                  <div className="win__dot win__dot--green" />
+                </div>
+                <div className="win__title">📌 Watching</div>
+              </div>
+              <div className="win__body">
+                <WatchlistPreview items={watchlistItems} onViewAll={() => setActiveTab('watchlist')} />
+              </div>
+            </div>
+          )}
+
+          {/* Top Collections Window */}
+          <div className="win">
+            <div className="win__titlebar">
+              <div className="win__dots">
+                <div className="win__dot win__dot--red" />
+                <div className="win__dot win__dot--yellow" />
+                <div className="win__dot win__dot--green" />
+              </div>
+              <div className="win__title">🏆 Top Collections</div>
+            </div>
+            <div className="win__body">
+              <TopCollections collections={collections} loading={collectionsLoading} />
+            </div>
+          </div>
         </>
       ) : (
         <WatchlistPage

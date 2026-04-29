@@ -6,12 +6,12 @@ interface TabNavProps {
   watchlistCount: number;
 }
 
-const DashboardIcon = () => (
+const DashIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="9" rx="1" />
-    <rect x="14" y="3" width="7" height="5" rx="1" />
-    <rect x="14" y="12" width="7" height="9" rx="1" />
-    <rect x="3" y="16" width="7" height="5" rx="1" />
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
   </svg>
 );
 
@@ -23,24 +23,22 @@ const StarIcon = () => (
 
 export default function TabNav({ activeTab, onTabChange, watchlistCount }: TabNavProps) {
   return (
-    <nav className="tab-nav">
+    <div className="tab-nav">
       <button
         className={`tab-nav__item${activeTab === 'dashboard' ? ' tab-nav__item--active' : ''}`}
         onClick={() => onTabChange('dashboard')}
       >
-        <DashboardIcon />
-        Dashboard
+        <DashIcon /> Dashboard
       </button>
       <button
         className={`tab-nav__item${activeTab === 'watchlist' ? ' tab-nav__item--active' : ''}`}
         onClick={() => onTabChange('watchlist')}
       >
-        <StarIcon />
-        Watchlist
+        <StarIcon /> Watchlist
         {watchlistCount > 0 && (
-          <span className="tab-nav__count">{watchlistCount}</span>
+          <span className="tab-nav__badge">{watchlistCount}</span>
         )}
       </button>
-    </nav>
+    </div>
   );
 }

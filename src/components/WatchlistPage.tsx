@@ -83,11 +83,17 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
 
   return (
     <div className="watchlist-page">
-      {/* Search Section */}
-      <div className="search-section">
-        <div className="section-header">
-          <span className="section-header__title"><SearchIcon /> Search Contract</span>
+      {/* Search Window */}
+      <div className="win">
+        <div className="win__titlebar">
+          <div className="win__dots">
+            <div className="win__dot win__dot--red" />
+            <div className="win__dot win__dot--yellow" />
+            <div className="win__dot win__dot--green" />
+          </div>
+          <div className="win__title">🔍 Search Contract</div>
         </div>
+        <div className="win__body">
         <div className="search-box">
           <input
             type="text"
@@ -164,18 +170,19 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
           </div>
         )}
       </div>
+      </div>
 
-      {/* Watchlist */}
-      <div className="watchlist-section">
-        <div className="section-header">
-          <span className="section-header__title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-            Watchlist
-          </span>
-          <span className="section-header__badge">{sharedItems.length} / 10</span>
+      {/* Watchlist Window */}
+      <div className="win">
+        <div className="win__titlebar">
+          <div className="win__dots">
+            <div className="win__dot win__dot--red" />
+            <div className="win__dot win__dot--yellow" />
+            <div className="win__dot win__dot--green" />
+          </div>
+          <div className="win__title">⭐ Watchlist ({sharedItems.length}/10)</div>
         </div>
+        <div className="win__body">
 
         {sharedItems.length === 0 ? (
           <div className="watchlist-empty">
@@ -229,6 +236,7 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

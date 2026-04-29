@@ -1,5 +1,6 @@
 'use client';
 
+import { formatAddress } from '@/lib/formatters';
 import type { WatchlistItem } from '@/lib/watchlist';
 
 interface WatchlistPreviewProps {
@@ -7,70 +8,36 @@ interface WatchlistPreviewProps {
   onViewAll: () => void;
 }
 
-const StarIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-  </svg>
-);
-
 export default function WatchlistPreview({ items, onViewAll }: WatchlistPreviewProps) {
   if (items.length === 0) return null;
 
   return (
     <div className="watchlist-preview">
-      <div className="watchlist-preview__header">
-        <span className="watchlist-preview__title">
-          <StarIcon />
-          Watching
-        </span>
-        <button
-          onClick={onViewAll}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-muted)',
-            fontSize: '0.65rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-            letterSpacing: '0.04em',
-            padding: 0,
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-        >
-          View all →
-        </button>
-      </div>
       <div className="watchlist-preview__scroll">
-        {items.map((item) => (
+        {items.slice(0, 4).map(item => (
           <div key={item.address} className="wl-card" onClick={onViewAll}>
             {item.image ? (
-              <img
-                className="wl-card__img"
-                src={item.image}
-                alt={item.name}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+              <img src={item.image} alt={item.name} className="wl-card__img" />
             ) : (
               <div className="wl-card__img wl-card__img--empty">?</div>
             )}
             <div className="wl-card__body">
-              <span className="wl-card__name">{item.name}</span>
+              <div className="wl-card__name">{item.name}</div>
               <div className="wl-card__details">
                 <span className="wl-card__type">{item.tokenType}</span>
-                {item.floorPrice != null && item.floorPrice > 0 && (
-                  <span className="wl-card__floor">
-                    {item.floorPrice < 0.001 ? '<0.001' : item.floorPrice.toFixed(4)} ETH
-                  </span>
+                {item.floorPrice !== null && (
+                  <span className="wl-card__floor">{item.floorPrice.toFixed(4)} ETH</span>
                 )}
               </div>
             </div>
           </div>
         ))}
       </div>
+      {items.length > 4 && (
+        <button className="btn-bevel" onClick={onViewAll} style={{ width: '100%', marginTop: 8 }}>
+          View All ({items.length})
+        </button>
+      )}
     </div>
   );
 }
