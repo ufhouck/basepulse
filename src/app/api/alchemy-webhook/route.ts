@@ -5,69 +5,96 @@ import {
   sendNotification,
 } from '@/lib/notifications';
 
-const WHALE_THRESHOLD_ETH = 0.1;
-
-interface AlchemyWebhookEvent {
-  webhookId: string;
-  type: string;
+// Real Alchemy NFT_ACTIVITY webhook payload format
+interface AlchemyNFTActivityEvent {
+  createdAt: string;
   event: {
-    network: string;
-    activity: Array<{
-      fromAddress: string;
-      toAddress: string;
-      value: number;
-      asset: string;
-      category: string;
-      rawContract: {
-        address: string;
-      };
-      log?: {
-        address: string;
-      };
+    category: string; // "erc721", "erc1155", "erc20"
+    fromAddress: string;
+    toAddress: string;
+    erc721TokenId?: string;
+    erc1155Metadata?: Array<{
+      tokenId: string;
+      value: string;
     }>;
+    log: {
+      address: string; // contract address
+      blockNumber: string;
+      transactionHash: string;
+      blockHash: string;
+      logIndex: string;
+      data: string;
+      topics: string[];
+      removed: boolean;
+      transactionIndex: string;
+    };
   };
+  id: string;
+  type: string; // "NFT_ACTIVITY"
+  webhookId: string;
+}
+
+function formatAddress(addr: string): string {
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
 export async function POST(request: Request) {
   try {
-    const body: AlchemyWebhookEvent = await request.json();
+    const body: AlchemyNFTActivityEvent = await request.json();
 
-    // Process each activity in the webhook
-    const activities = body.event?.activity || [];
+    console.log(`Alchemy webhook: type=${body.type}, category=${body.event?.category}`);
 
-    for (const activity of activities) {
-      const contractAddress =
-        activity.rawContract?.address ||
-        activity.log?.address ||
-        '';
+    if (body.type !== 'NFT_ACTIVITY' || !body.event) {
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
 
-      if (!contractAddress) continue;
+    const { event } = body;
+    const contractAddress = event.log?.address;
 
-      const valueEth = activity.value || 0;
+    if (!contractAddress) {
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
 
-      // Only notify for significant transactions (whale threshold)
-      if (valueEth < WHALE_THRESHOLD_ETH) continue;
+    // Find all users watching this contract
+    const watcherFids = await getWatchersForContract(contractAddress);
 
-      // Find all users watching this contract
-      const watcherFids = await getWatchersForContract(contractAddress);
+    if (watcherFids.length === 0) {
+      console.log(`No watchers for contract ${contractAddress}`);
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
 
-      if (watcherFids.length === 0) continue;
+    // Build notification content
+    const category = event.category?.toUpperCase() || 'NFT';
+    const from = formatAddress(event.fromAddress);
+    const to = formatAddress(event.toAddress);
+    const txHash = event.log.transactionHash;
+    const shortTx = formatAddress(txHash);
 
-      // Send notification to each watcher
-      const category = activity.category || 'transfer';
-      const displayValue = valueEth.toFixed(4);
+    // Determine if this is a mint (from = 0x0)
+    const isMint = event.fromAddress === '0x0000000000000000000000000000000000000000';
+    const actionText = isMint ? '🟢 Mint' : '🔄 Transfer';
 
-      for (const fid of watcherFids) {
-        const tokenData = await getNotificationToken(fid);
-        if (!tokenData) continue;
+    let tokenInfo = '';
+    if (event.erc721TokenId) {
+      tokenInfo = ` #${parseInt(event.erc721TokenId, 16)}`;
+    } else if (event.erc1155Metadata && event.erc1155Metadata.length > 0) {
+      const qty = parseInt(event.erc1155Metadata[0].value, 16);
+      tokenInfo = ` (${qty}x)`;
+    }
 
-        await sendNotification(fid, {
-          title: '🐋 Whale Alert — Base Pulse',
-          body: `${displayValue} ETH ${category} detected on watched contract`,
-          targetUrl: 'https://basepulse-alpha.vercel.app',
-          notificationId: `whale-${contractAddress}-${Date.now()}`,
-        });
-      }
+    // Send notification to each watcher
+    for (const fid of watcherFids) {
+      const tokenData = await getNotificationToken(fid);
+      if (!tokenData) continue;
+
+      await sendNotification(fid, {
+        title: `${actionText} — Base Pulse`,
+        body: `${category}${tokenInfo}: ${from} → ${to} [${shortTx}]`,
+        targetUrl: `https://basepulse-alpha.vercel.app`,
+        notificationId: `nft-${txHash}-${contractAddress}`,
+      });
+
+      console.log(`Sent notification to FID ${fid} for ${contractAddress}`);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
