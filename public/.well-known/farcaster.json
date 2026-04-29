@@ -4,8 +4,11 @@
     "name": "Base Pulse",
     "iconUrl": "https://basepulse-alpha.vercel.app/icon.png",
     "homeUrl": "https://basepulse-alpha.vercel.app",
+    "imageUrl": "https://basepulse-alpha.vercel.app/og-image.png",
+    "buttonTitle": "📊 Open Base Pulse",
     "splashImageUrl": "https://basepulse-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#06070f",
+    "webhookUrl": "https://basepulse-alpha.vercel.app/api/webhook",
     "tags": ["nft", "base", "analytics", "tracker", "defi"],
     "requiredChains": ["eip155:8453"]
   },

@@ -3,6 +3,36 @@ import "./globals.css";
 
 const DOMAIN = "https://basepulse-alpha.vercel.app";
 
+const miniappEmbed = JSON.stringify({
+  version: "1",
+  imageUrl: `${DOMAIN}/og-image.png`,
+  button: {
+    title: "📊 Open Base Pulse",
+    action: {
+      type: "launch_miniapp",
+      url: DOMAIN,
+      name: "Base Pulse",
+      splashImageUrl: `${DOMAIN}/splash.png`,
+      splashBackgroundColor: "#06070f",
+    },
+  },
+});
+
+const frameEmbed = JSON.stringify({
+  version: "1",
+  imageUrl: `${DOMAIN}/og-image.png`,
+  button: {
+    title: "📊 Open Base Pulse",
+    action: {
+      type: "launch_frame",
+      url: DOMAIN,
+      name: "Base Pulse",
+      splashImageUrl: `${DOMAIN}/splash.png`,
+      splashBackgroundColor: "#06070f",
+    },
+  },
+});
+
 export const metadata: Metadata = {
   title: "Base Pulse — NFT Activity Tracker on Base",
   description:
@@ -17,7 +47,7 @@ export const metadata: Metadata = {
       {
         url: `${DOMAIN}/og-image.png`,
         width: 1200,
-        height: 630,
+        height: 800,
         alt: "Base Pulse — NFT Activity on Base",
       },
     ],
@@ -29,11 +59,8 @@ export const metadata: Metadata = {
     images: [`${DOMAIN}/og-image.png`],
   },
   other: {
-    "fc:frame": "vNext",
-    "fc:frame:image": `${DOMAIN}/og-image.png`,
-    "fc:frame:button:1": "Open Base Pulse",
-    "fc:frame:button:1:action": "link",
-    "fc:frame:button:1:target": DOMAIN,
+    "fc:miniapp": miniappEmbed,
+    "fc:frame": frameEmbed,
   },
 };
 

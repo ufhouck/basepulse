@@ -64,6 +64,15 @@ export default function Dashboard() {
     }
   }, []);
 
+  const handleAddApp = useCallback(async () => {
+    try {
+      const { sdk } = await import('@farcaster/miniapp-sdk');
+      await sdk.actions.addMiniApp();
+    } catch (e) {
+      console.log('addMiniApp not available', e);
+    }
+  }, []);
+
   if (!isReady) {
     return (
       <div className="loading-screen">

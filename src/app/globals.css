@@ -1213,6 +1213,40 @@ body {
 
 .watchlist-item__remove svg { width: 12px; height: 12px; }
 
+.watchlist-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.watchlist-item__bell {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration) var(--ease);
+}
+
+.watchlist-item__bell svg { width: 13px; height: 13px; }
+
+.watchlist-item__bell--active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.watchlist-item__bell:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ---- Volume Chart Additions ---- */
 .volume-chart__total-sub {
   display: block;
