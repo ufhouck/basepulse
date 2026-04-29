@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useWatchlist, useContractSearch, type ContractResult } from '@/hooks/useWatchlist';
+import { useContractSearch, type ContractResult } from '@/hooks/useWatchlist';
 import { formatAddress } from '@/lib/formatters';
 import type { WatchlistItem } from '@/lib/watchlist';
 
@@ -29,8 +29,14 @@ const CheckIcon = () => (
   </svg>
 );
 
-export default function WatchlistPage() {
-  const { items, add, remove, check } = useWatchlist();
+interface WatchlistPageProps {
+  sharedItems: WatchlistItem[];
+  sharedAdd: (item: WatchlistItem) => boolean;
+  sharedRemove: (address: string) => void;
+  sharedCheck: (address: string) => boolean;
+}
+
+export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sharedCheck }: WatchlistPageProps) {
   const { result, loading, error, search, clear } = useContractSearch();
   const [input, setInput] = useState('');
 
@@ -55,7 +61,7 @@ export default function WatchlistPage() {
       collectionSlug: r.collectionSlug,
       addedAt: Date.now(),
     };
-    add(item);
+    sharedAdd(item);
   };
 
   return (
@@ -109,12 +115,12 @@ export default function WatchlistPage() {
                 </div>
               </div>
               <button
-                className={`contract-card__add${check(result.address) ? ' contract-card__add--added' : ''}`}
+                className={`contract-card__add${sharedCheck(result.address) ? ' contract-card__add--added' : ''}`}
                 onClick={() => handleAdd(result)}
-                disabled={check(result.address)}
-                title={check(result.address) ? 'Already in watchlist' : 'Add to watchlist'}
+                disabled={sharedCheck(result.address)}
+                title={sharedCheck(result.address) ? 'Already in watchlist' : 'Add to watchlist'}
               >
-                {check(result.address) ? <CheckIcon /> : <PlusIcon />}
+                {sharedCheck(result.address) ? <CheckIcon /> : <PlusIcon />}
               </button>
             </div>
 
@@ -151,10 +157,10 @@ export default function WatchlistPage() {
             </svg>
             Watchlist
           </span>
-          <span className="section-header__badge">{items.length} / 10</span>
+          <span className="section-header__badge">{sharedItems.length} / 10</span>
         </div>
 
-        {items.length === 0 ? (
+        {sharedItems.length === 0 ? (
           <div className="watchlist-empty">
             <div className="empty-state">
               <div className="empty-state__text">Search and add contracts to your watchlist</div>
@@ -162,7 +168,7 @@ export default function WatchlistPage() {
           </div>
         ) : (
           <div className="watchlist-list">
-            {items.map(item => (
+            {sharedItems.map(item => (
               <div key={item.address} className="watchlist-item">
                 {item.image ? (
                   <img src={item.image} alt={item.name} className="watchlist-item__image" />
@@ -185,7 +191,7 @@ export default function WatchlistPage() {
                 </div>
                 <button
                   className="watchlist-item__remove"
-                  onClick={() => remove(item.address)}
+                  onClick={() => sharedRemove(item.address)}
                   title="Remove from watchlist"
                 >
                   <TrashIcon />

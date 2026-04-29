@@ -42,7 +42,7 @@ export default function Dashboard() {
   const { stats, volumes, whales, loading: statsLoading, refetch: refetchStats } = useNFTStats();
   const { collections, loading: collectionsLoading, refetch: refetchCollections } = useCollections();
   const { activity, loading: activityLoading, refetch: refetchActivity } = useActivity();
-  const { items: watchlistItems } = useWatchlist();
+  const { items: watchlistItems, add: addWatchlistItem, remove: removeWatchlistItem, check: checkWatchlistItem } = useWatchlist();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'watchlist'>('dashboard');
 
@@ -57,7 +57,7 @@ export default function Dashboard() {
       const { sdk } = await import('@farcaster/miniapp-sdk');
       await sdk.actions.composeCast({
         text: 'Check out Base NFT activity on Base Pulse ⚡',
-        embeds: ['https://basepulse.vercel.app'],
+        embeds: ['https://basepulse-alpha.vercel.app'],
       });
     } catch (e) {
       console.log('Share not available outside Farcaster', e);
@@ -130,7 +130,12 @@ export default function Dashboard() {
           <WhaleTracker whales={whales} loading={statsLoading} />
         </>
       ) : (
-        <WatchlistPage />
+        <WatchlistPage
+          sharedAdd={addWatchlistItem}
+          sharedRemove={removeWatchlistItem}
+          sharedCheck={checkWatchlistItem}
+          sharedItems={watchlistItems}
+        />
       )}
 
       <footer className="footer">

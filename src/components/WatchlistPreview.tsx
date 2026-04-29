@@ -29,7 +29,7 @@ export default function WatchlistPreview({ items, onViewAll }: WatchlistPreviewP
             background: 'none',
             border: 'none',
             color: 'var(--text-muted)',
-            fontSize: '0.6rem',
+            fontSize: '0.65rem',
             fontWeight: 500,
             cursor: 'pointer',
             letterSpacing: '0.04em',
@@ -44,10 +44,10 @@ export default function WatchlistPreview({ items, onViewAll }: WatchlistPreviewP
       </div>
       <div className="watchlist-preview__scroll">
         {items.map((item) => (
-          <div key={item.address} className="wl-mini" onClick={onViewAll}>
+          <div key={item.address} className="wl-card" onClick={onViewAll}>
             {item.image ? (
               <img
-                className="wl-mini__img"
+                className="wl-card__img"
                 src={item.image}
                 alt={item.name}
                 onError={(e) => {
@@ -55,26 +55,19 @@ export default function WatchlistPreview({ items, onViewAll }: WatchlistPreviewP
                 }}
               />
             ) : (
-              <div
-                className="wl-mini__img"
-                style={{
-                  background: 'var(--bg-elevated)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.5rem',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                ?
+              <div className="wl-card__img wl-card__img--empty">?</div>
+            )}
+            <div className="wl-card__body">
+              <span className="wl-card__name">{item.name}</span>
+              <div className="wl-card__details">
+                <span className="wl-card__type">{item.tokenType}</span>
+                {item.floorPrice != null && item.floorPrice > 0 && (
+                  <span className="wl-card__floor">
+                    {item.floorPrice < 0.001 ? '<0.001' : item.floorPrice.toFixed(4)} ETH
+                  </span>
+                )}
               </div>
-            )}
-            <span className="wl-mini__name">{item.name}</span>
-            {item.floorPrice != null && item.floorPrice > 0 && (
-              <span className="wl-mini__floor">
-                {item.floorPrice < 0.001 ? '<0.001' : item.floorPrice.toFixed(3)}Ξ
-              </span>
-            )}
+            </div>
           </div>
         ))}
       </div>
