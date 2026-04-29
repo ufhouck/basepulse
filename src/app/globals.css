@@ -78,6 +78,88 @@ body {
   letter-spacing: 0;
 }
 
+/* ===== CRT TV Effects ===== */
+
+/* Scanlines overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.03) 0px,
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* Noise / grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  animation: noise 0.3s steps(4) infinite;
+}
+
+@keyframes noise {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, -2px); }
+  100% { transform: translate(2px, 1px); }
+}
+
+/* CRT flicker */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  3% { opacity: 0.97; }
+  6% { opacity: 1; }
+  42% { opacity: 0.98; }
+  44% { opacity: 1; }
+  92% { opacity: 0.97; }
+  95% { opacity: 1; }
+}
+
+.app { animation: flicker 4s infinite; }
+
+/* Vignette (dark edges like CRT screen) */
+.app::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9996;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+/* ===== Glitch Effect on Title ===== */
+@keyframes glitch {
+  0%, 93%, 100% { transform: translate(0); filter: none; }
+  94% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  95% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+  96% { transform: translate(0); filter: none; }
+  97% { transform: translate(1px, 2px) skewX(2deg); filter: saturate(2); }
+  98% { transform: translate(-1px, -1px) skewX(-1deg); filter: hue-rotate(180deg); }
+  99% { transform: translate(0); filter: none; }
+}
+
+.header__title {
+  animation: glitch 8s ease-in-out infinite;
+  position: relative;
+}
+
 /* Classic Mac scrollbar */
 ::-webkit-scrollbar { width: 16px; }
 ::-webkit-scrollbar-track {
