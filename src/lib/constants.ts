@@ -6,20 +6,15 @@ export const BASE_CHAIN_ID = 8453;
 export const REFRESH_INTERVAL = 30000; // 30 seconds
 export const ACTIVITY_REFRESH_INTERVAL = 15000; // 15 seconds
 
+// Activity type colors (CSS variable names)
 export const ACTIVITY_COLORS: Record<string, string> = {
-  mint: '#10B981',
-  transfer: '#3B82F6',
-  sale: '#F59E0B',
-  list: '#8B5CF6',
+  mint: 'var(--green)',
+  transfer: 'var(--blue)',
+  sale: 'var(--amber)',
+  list: 'var(--purple)',
 };
 
-export const ACTIVITY_ICONS: Record<string, string> = {
-  mint: '🟢',
-  transfer: '🔵',
-  sale: '🟡',
-  list: '🟣',
-};
-
+// Activity labels
 export const ACTIVITY_LABELS: Record<string, string> = {
   mint: 'Mint',
   transfer: 'Transfer',

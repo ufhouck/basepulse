@@ -9,7 +9,7 @@ export async function GET() {
     const [stats, volumes, whales] = await Promise.all([
       getStats(),
       getDailyVolumes(7),
-      getWhaleTransactions(1),
+      getWhaleTransactions(0.01),
     ]);
 
     return NextResponse.json({ stats, volumes, whales });
