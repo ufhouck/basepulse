@@ -1,39 +1,39 @@
 /* ===================================
-   BASE PULSE — 90's macOS Platinum Dark
-   Retro computing aesthetic
+   BASE PULSE — 90's Mac OS 8 Platinum
+   Classic Macintosh aesthetic
    =================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ---- CSS Variables ---- */
 :root {
-  /* Desktop */
-  --bg-desktop: #1e1e22;
-  --bg-window: #2a2a2f;
-  --bg-titlebar: linear-gradient(180deg, #4a4a52 0%, #3a3a40 100%);
-  --bg-input: #1a1a1f;
-  --bg-sunken: #18181c;
+  /* Desktop — classic Mac gray with dot pattern */
+  --bg-desktop: #7b7b7f;
+  --bg-window: #c0c0c0;
+  --bg-titlebar: linear-gradient(180deg, #d8d8d8 0%, #b0b0b0 100%);
+  --bg-input: #ffffff;
+  --bg-sunken: #a0a0a4;
 
   /* Beveled Borders */
-  --bevel-light: #5a5a62;
-  --bevel-dark: #0e0e12;
-  --border: #3a3a42;
+  --bevel-light: #e8e8e8;
+  --bevel-dark: #404044;
+  --border: #909094;
 
-  /* Accent */
-  --accent: #00d4aa;
-  --accent-dim: rgba(0, 212, 170, 0.15);
-  --accent-muted: rgba(0, 212, 170, 0.08);
+  /* Accent — teal for data */
+  --accent: #008060;
+  --accent-dim: rgba(0, 128, 96, 0.15);
+  --accent-muted: rgba(0, 128, 96, 0.08);
 
   /* Semantic */
-  --green: #00d4aa;
-  --red: #ff6b6b;
-  --amber: #f0b232;
-  --blue: #6ba3ff;
+  --green: #008060;
+  --red: #cc0000;
+  --amber: #cc9900;
+  --blue: #0066cc;
 
   /* Text */
-  --text-primary: #d8d8dc;
-  --text-secondary: #8a8a94;
-  --text-muted: #5a5a64;
+  --text-primary: #000000;
+  --text-secondary: #404044;
+  --text-muted: #666670;
 
   /* Typography */
   --font-pixel: 'VT323', 'Courier New', monospace;
@@ -48,10 +48,10 @@
   --space-6: 24px;
 
   /* Radius */
-  --radius-win: 6px;
+  --radius-win: 3px;
 
   /* Animation */
-  --duration: 0.15s;
+  --duration: 0.12s;
 }
 
 /* ---- Reset ---- */
@@ -69,22 +69,28 @@ html {
 body {
   font-family: var(--font-pixel);
   background: var(--bg-desktop);
+  /* Classic Mac OS dotted desktop pattern */
+  background-image: radial-gradient(circle, #6a6a6e 0.5px, transparent 0.5px);
+  background-size: 4px 4px;
   color: var(--text-primary);
   min-height: 100dvh;
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: none; /* pixel-perfect rendering */
   letter-spacing: 0.02em;
 }
 
-/* Retro scrollbar */
-::-webkit-scrollbar { width: 12px; }
+/* Classic Mac scrollbar */
+::-webkit-scrollbar { width: 14px; }
 ::-webkit-scrollbar-track {
-  background: var(--bg-sunken);
+  background: var(--bg-window);
   border-left: 1px solid var(--bevel-dark);
+  border-right: 1px solid var(--bevel-light);
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--bevel-light) 0%, #3a3a40 100%);
+  background: linear-gradient(180deg, #d4d4d4 0%, #a8a8a8 100%);
   border: 1px solid var(--bevel-dark);
+  border-top-color: var(--bevel-light);
+  border-left-color: var(--bevel-light);
 }
 
 /* ---- App Container ---- */
@@ -99,16 +105,16 @@ body {
 }
 
 /* ===================================
-   macOS Window Component
+   Mac OS 8 Window Component
    =================================== */
 .win {
   background: var(--bg-window);
   border-radius: var(--radius-win);
-  border: 1px solid var(--bevel-light);
+  border: 2px solid var(--bevel-light);
   border-bottom-color: var(--bevel-dark);
   border-right-color: var(--bevel-dark);
   overflow: hidden;
-  box-shadow: 2px 2px 0 var(--bevel-dark), inset 0 0 0 1px rgba(255,255,255,0.04);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3), inset 0 0 0 1px #ffffff;
 }
 
 .win__titlebar {
@@ -168,10 +174,10 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--bevel-light);
+  border: 2px solid var(--bevel-light);
   border-bottom-color: var(--bevel-dark);
   border-right-color: var(--bevel-dark);
-  box-shadow: 2px 2px 0 var(--bevel-dark);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3), inset 0 0 0 1px #ffffff;
 }
 
 .header__dots {
@@ -240,7 +246,7 @@ body {
   font-family: var(--font-pixel);
   font-size: 14px;
   padding: 3px 8px;
-  background: linear-gradient(180deg, #4a4a52 0%, #3a3a40 100%);
+  background: linear-gradient(180deg, #d4d4d4 0%, #b0b0b0 100%);
   border: 1px solid var(--bevel-light);
   border-bottom-color: var(--bevel-dark);
   border-right-color: var(--bevel-dark);
@@ -251,7 +257,7 @@ body {
 }
 
 .btn-bevel:hover {
-  background: linear-gradient(180deg, #5a5a62 0%, #4a4a52 100%);
+  background: linear-gradient(180deg, #e0e0e0 0%, #c4c4c4 100%);
 }
 
 .btn-bevel:active {
@@ -613,7 +619,7 @@ body {
   font-family: var(--font-pixel);
   font-size: 15px;
   padding: 6px 12px;
-  background: linear-gradient(180deg, #3a3a40 0%, #2a2a2f 100%);
+  background: linear-gradient(180deg, #c8c8c8 0%, #acacac 100%);
   border: 1px solid var(--bevel-light);
   border-bottom-color: var(--bevel-dark);
   border-right-color: var(--bevel-dark);
@@ -758,7 +764,7 @@ body {
 .search-box__btn {
   font-family: var(--font-pixel);
   padding: 8px 14px;
-  background: linear-gradient(180deg, #4a4a52 0%, #3a3a40 100%);
+  background: linear-gradient(180deg, #d4d4d4 0%, #b0b0b0 100%);
   border: 1px solid var(--bevel-light);
   border-bottom-color: var(--bevel-dark);
   border-right-color: var(--bevel-dark);
@@ -948,7 +954,7 @@ body {
 .watchlist-item__remove {
   width: 26px;
   height: 26px;
-  background: linear-gradient(180deg, #4a4a52 0%, #3a3a40 100%);
+  background: linear-gradient(180deg, #d4d4d4 0%, #b0b0b0 100%);
   border: 1px solid var(--bevel-light);
   border-bottom-color: var(--bevel-dark);
   border-right-color: var(--bevel-dark);
