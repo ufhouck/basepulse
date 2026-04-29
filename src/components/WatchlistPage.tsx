@@ -5,12 +5,6 @@ import { useContractSearch, type ContractResult } from '@/hooks/useWatchlist';
 import { formatAddress } from '@/lib/formatters';
 import type { WatchlistItem } from '@/lib/watchlist';
 
-const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
 const PlusIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 5v14m-7-7h14" />
@@ -29,6 +23,16 @@ const CheckIcon = () => (
   </svg>
 );
 
+interface WalletCollection {
+  contractAddress: string;
+  name: string | null;
+  tokenType: string;
+  totalBalance: number;
+  image: string | null;
+  floorPrice: number | null;
+  collectionSlug: string | null;
+}
+
 interface WatchlistPageProps {
   sharedItems: WatchlistItem[];
   sharedAdd: (item: WatchlistItem) => boolean;
@@ -39,9 +43,15 @@ interface WatchlistPageProps {
 export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sharedCheck }: WatchlistPageProps) {
   const { result, loading, error, search, clear } = useContractSearch();
   const [input, setInput] = useState('');
+  const [searchMode, setSearchMode] = useState<'contract' | 'wallet'>('contract');
   const [notifyMap, setNotifyMap] = useState<Record<string, boolean>>({});
 
-  // Load notification preferences from localStorage
+  // Wallet browse state
+  const [walletAddr, setWalletAddr] = useState('');
+  const [walletCollections, setWalletCollections] = useState<WalletCollection[]>([]);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState('');
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem('bp_notify_prefs');
@@ -57,6 +67,7 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
     });
   }, []);
 
+  // Contract search
   const handleSearch = () => {
     const addr = input.trim();
     if (/^0x[a-fA-F0-9]{40}$/.test(addr)) {
@@ -65,7 +76,10 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch();
+    if (e.key === 'Enter') {
+      if (searchMode === 'contract') handleSearch();
+      else handleWalletBrowse();
+    }
   };
 
   const handleAdd = (r: ContractResult) => {
@@ -81,9 +95,49 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
     sharedAdd(item);
   };
 
+  // Wallet browse
+  const handleWalletBrowse = async () => {
+    const addr = walletAddr.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      setWalletError('Invalid wallet address');
+      return;
+    }
+    setWalletLoading(true);
+    setWalletError('');
+    setWalletCollections([]);
+    try {
+      const res = await fetch(`/api/nft/wallet?owner=${addr}`);
+      const data = await res.json();
+      if (data.error) {
+        setWalletError(data.error);
+      } else {
+        setWalletCollections(data.collections || []);
+        if ((data.collections || []).length === 0) {
+          setWalletError('No NFTs found in this wallet');
+        }
+      }
+    } catch {
+      setWalletError('Failed to fetch wallet NFTs');
+    }
+    setWalletLoading(false);
+  };
+
+  const handleAddFromWallet = (c: WalletCollection) => {
+    const item: WatchlistItem = {
+      address: c.contractAddress,
+      name: c.name || formatAddress(c.contractAddress),
+      image: c.image,
+      tokenType: c.tokenType,
+      floorPrice: c.floorPrice,
+      collectionSlug: c.collectionSlug,
+      addedAt: Date.now(),
+    };
+    sharedAdd(item);
+  };
+
   return (
     <div className="watchlist-page">
-      {/* Search Window */}
+      {/* Search / Browse Window */}
       <div className="win">
         <div className="win__titlebar">
           <div className="win__dots">
@@ -91,85 +145,163 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
             <div className="win__dot win__dot--yellow" />
             <div className="win__dot win__dot--green" />
           </div>
-          <div className="win__title">🔍 Search Contract</div>
+          <div className="win__title">
+            {searchMode === 'contract' ? '🔍 Search Contract' : '👛 Browse Wallet'}
+          </div>
         </div>
         <div className="win__body">
-        <div className="search-box">
-          <input
-            type="text"
-            className="search-box__input"
-            placeholder="Enter Base NFT contract address (0x...)"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            spellCheck={false}
-          />
-          <button
-            className="search-box__btn"
-            onClick={handleSearch}
-            disabled={loading || !/^0x[a-fA-F0-9]{40}$/.test(input.trim())}
-          >
-            {loading ? <div className="loading-spinner" style={{ width: 14, height: 14 }} /> : <SearchIcon />}
-          </button>
-        </div>
+          {/* Mode Toggle */}
+          <div className="mode-toggle">
+            <button
+              className={`mode-toggle__btn${searchMode === 'contract' ? ' mode-toggle__btn--active' : ''}`}
+              onClick={() => { setSearchMode('contract'); setWalletCollections([]); setWalletError(''); }}
+            >
+              Contract
+            </button>
+            <button
+              className={`mode-toggle__btn${searchMode === 'wallet' ? ' mode-toggle__btn--active' : ''}`}
+              onClick={() => { setSearchMode('wallet'); clear(); }}
+            >
+              My Wallet
+            </button>
+          </div>
 
-        {/* Error */}
-        {error && (
-          <div className="search-error">{error}</div>
-        )}
+          {searchMode === 'contract' ? (
+            <>
+              <div className="search-box">
+                <input
+                  type="text"
+                  className="search-box__input"
+                  placeholder="Paste contract address (0x...)"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button
+                  className="search-box__btn"
+                  onClick={handleSearch}
+                  disabled={loading || !input.trim()}
+                >
+                  {loading ? '...' : '→'}
+                </button>
+              </div>
 
-        {/* Result Card */}
-        {result && (
-          <div className="contract-card">
-            <div className="contract-card__header">
-              {result.image ? (
-                <img src={result.image} alt={result.name} className="contract-card__image" />
-              ) : (
-                <div className="contract-card__image contract-card__image--empty" />
-              )}
-              <div className="contract-card__info">
-                <div className="contract-card__name">{result.name}</div>
-                <div className="contract-card__address">{formatAddress(result.address)}</div>
-                <div className="contract-card__meta">
-                  <span className="contract-card__tag">{result.tokenType}</span>
-                  {result.floorPrice !== null && (
-                    <span>Floor: {result.floorPrice.toFixed(4)} ETH</span>
+              {error && <div className="search-error">{error}</div>}
+
+              {result && (
+                <div className="contract-card">
+                  <div className="contract-card__header">
+                    {result.image ? (
+                      <img src={result.image} alt={result.name} className="contract-card__image" />
+                    ) : (
+                      <div className="contract-card__image contract-card__image--empty" />
+                    )}
+                    <div className="contract-card__info">
+                      <div className="contract-card__name">{result.name}</div>
+                      <div className="contract-card__address">{formatAddress(result.address)}</div>
+                      <div className="contract-card__meta">
+                        <span className="contract-card__tag">{result.tokenType}</span>
+                        {result.floorPrice !== null && (
+                          <span>{result.floorPrice.toFixed(4)} ETH</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      className={`contract-card__add${sharedCheck(result.address) ? ' contract-card__add--added' : ''}`}
+                      onClick={() => handleAdd(result)}
+                      disabled={sharedCheck(result.address)}
+                    >
+                      {sharedCheck(result.address) ? <CheckIcon /> : <PlusIcon />}
+                    </button>
+                  </div>
+
+                  {result.description && (
+                    <div className="contract-card__desc">{result.description}</div>
+                  )}
+
+                  {result.nfts && result.nfts.length > 0 && (
+                    <div className="contract-card__nfts">
+                      {result.nfts.map((nft, i) => (
+                        nft.image && (
+                          <img
+                            key={i}
+                            src={nft.image}
+                            alt={nft.name || `#${nft.tokenId}`}
+                            className="contract-card__nft-thumb"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        )
+                      ))}
+                    </div>
                   )}
                 </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="search-box">
+                <input
+                  type="text"
+                  className="search-box__input"
+                  placeholder="Paste wallet address (0x...)"
+                  value={walletAddr}
+                  onChange={e => setWalletAddr(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button
+                  className="search-box__btn"
+                  onClick={handleWalletBrowse}
+                  disabled={walletLoading || !walletAddr.trim()}
+                >
+                  {walletLoading ? '...' : '→'}
+                </button>
               </div>
-              <button
-                className={`contract-card__add${sharedCheck(result.address) ? ' contract-card__add--added' : ''}`}
-                onClick={() => handleAdd(result)}
-                disabled={sharedCheck(result.address)}
-                title={sharedCheck(result.address) ? 'Already in watchlist' : 'Add to watchlist'}
-              >
-                {sharedCheck(result.address) ? <CheckIcon /> : <PlusIcon />}
-              </button>
-            </div>
 
-            {result.description && (
-              <div className="contract-card__desc">{result.description}</div>
-            )}
+              {walletError && <div className="search-error">{walletError}</div>}
 
-            {/* NFT Previews */}
-            {result.nfts && result.nfts.length > 0 && (
-              <div className="contract-card__nfts">
-                {result.nfts.map((nft, i) => (
-                  nft.image && (
-                    <img
-                      key={i}
-                      src={nft.image}
-                      alt={nft.name || `#${nft.tokenId}`}
-                      className="contract-card__nft-thumb"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  )
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              {walletCollections.length > 0 && (
+                <div className="wallet-grid">
+                  {walletCollections.map(c => {
+                    const isAdded = sharedCheck(c.contractAddress);
+                    return (
+                      <div key={c.contractAddress} className="wallet-card">
+                        {c.image ? (
+                          <img
+                            src={c.image}
+                            alt={c.name || ''}
+                            className="wallet-card__img"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="wallet-card__img wallet-card__img--empty">?</div>
+                        )}
+                        <div className="wallet-card__body">
+                          <div className="wallet-card__name">
+                            {c.name || formatAddress(c.contractAddress)}
+                          </div>
+                          <div className="wallet-card__meta">
+                            <span className="wallet-card__type">{c.tokenType}</span>
+                            <span className="wallet-card__count">×{c.totalBalance}</span>
+                          </div>
+                          {c.floorPrice !== null && c.floorPrice > 0 && (
+                            <div className="wallet-card__floor">{c.floorPrice.toFixed(4)} ETH</div>
+                          )}
+                        </div>
+                        <button
+                          className={`wallet-card__add${isAdded ? ' wallet-card__add--added' : ''}`}
+                          onClick={() => handleAddFromWallet(c)}
+                          disabled={isAdded}
+                        >
+                          {isAdded ? <CheckIcon /> : <PlusIcon />}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Watchlist Window */}
@@ -183,11 +315,10 @@ export default function WatchlistPage({ sharedItems, sharedAdd, sharedRemove, sh
           <div className="win__title">⭐ Watchlist ({sharedItems.length}/10)</div>
         </div>
         <div className="win__body">
-
         {sharedItems.length === 0 ? (
           <div className="watchlist-empty">
             <div className="empty-state">
-              <div className="empty-state__text">Search and add contracts to your watchlist</div>
+              <div className="empty-state__text">Search contracts or browse your wallet to add NFTs</div>
             </div>
           </div>
         ) : (

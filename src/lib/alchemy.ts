@@ -86,3 +86,51 @@ export async function getNFTsForContract(
     return [];
   }
 }
+
+// Wallet owner NFT collection summary
+export interface OwnerCollection {
+  contractAddress: string;
+  name: string | null;
+  tokenType: string;
+  totalBalance: number;
+  image: string | null;
+  floorPrice: number | null;
+  collectionSlug: string | null;
+}
+
+// Get NFT collections owned by a wallet address
+export async function getNFTsForOwner(
+  ownerAddress: string,
+): Promise<OwnerCollection[]> {
+  try {
+    const res = await fetch(
+      `${ALCHEMY_BASE_URL}/${getApiKey()}/getContractsForOwner?owner=${ownerAddress}&pageSize=50`,
+      { next: { revalidate: 60 } }
+    );
+
+    if (!res.ok) {
+      console.error('Alchemy getContractsForOwner error:', res.status);
+      return [];
+    }
+
+    const data = await res.json();
+    const contracts = data?.contracts || [];
+
+    return contracts.map((c: Record<string, unknown>) => {
+      const opensea = (c.openSeaMetadata || {}) as Record<string, unknown>;
+      return {
+        contractAddress: c.address as string,
+        name: (c.name as string) || (opensea.collectionName as string) || null,
+        tokenType: (c.tokenType as string) || 'UNKNOWN',
+        totalBalance: Number(c.totalBalance) || 0,
+        image: (opensea.imageUrl as string) || (c.media as Record<string, unknown>)?.thumbnail as string || null,
+        floorPrice: (opensea.floorPrice as number) || null,
+        collectionSlug: (opensea.collectionSlug as string) || null,
+      };
+    }).filter((c: OwnerCollection) => c.totalBalance > 0);
+  } catch (error) {
+    console.error('Failed to fetch NFTs for owner:', error);
+    return [];
+  }
+}
+
