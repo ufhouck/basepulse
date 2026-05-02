@@ -45,6 +45,25 @@ export function useFarcasterSDK() {
             walletAddress,
           });
           setIsInFrame(true);
+
+          // Auto-request notification permission
+          try {
+            const notifResult = await sdk.actions.addMiniApp();
+            // notifResult has token & url if granted
+            if (notifResult && 'token' in notifResult && 'url' in notifResult) {
+              await fetch('/api/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  fid: ctx.user.fid,
+                  token: notifResult.token,
+                  url: notifResult.url,
+                }),
+              });
+            }
+          } catch {
+            // User denied or already added — that's fine
+          }
         }
       } catch {
         // Not in a Farcaster client — running standalone
