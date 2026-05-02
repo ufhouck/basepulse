@@ -1,9 +1,11 @@
 'use client';
 
+type TabType = 'dashboard' | 'mynfts' | 'settings';
+
 interface TabNavProps {
-  activeTab: 'dashboard' | 'watchlist';
-  onTabChange: (tab: 'dashboard' | 'watchlist') => void;
-  watchlistCount: number;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
+  alertCount: number;
 }
 
 const DashIcon = () => (
@@ -15,29 +17,44 @@ const DashIcon = () => (
   </svg>
 );
 
-const StarIcon = () => (
+const WalletIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    <rect x="2" y="6" width="20" height="14" rx="2" />
+    <path d="M2 10h20" />
+    <circle cx="16" cy="14" r="1" />
   </svg>
 );
 
-export default function TabNav({ activeTab, onTabChange, watchlistCount }: TabNavProps) {
+const GearIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
+
+export default function TabNav({ activeTab, onTabChange, alertCount }: TabNavProps) {
   return (
     <div className="tab-nav">
       <button
         className={`tab-nav__item${activeTab === 'dashboard' ? ' tab-nav__item--active' : ''}`}
         onClick={() => onTabChange('dashboard')}
       >
-        <DashIcon /> Dashboard
+        <DashIcon /> Home
       </button>
       <button
-        className={`tab-nav__item${activeTab === 'watchlist' ? ' tab-nav__item--active' : ''}`}
-        onClick={() => onTabChange('watchlist')}
+        className={`tab-nav__item${activeTab === 'mynfts' ? ' tab-nav__item--active' : ''}`}
+        onClick={() => onTabChange('mynfts')}
       >
-        <StarIcon /> Watchlist
-        {watchlistCount > 0 && (
-          <span className="tab-nav__badge">{watchlistCount}</span>
+        <WalletIcon /> My NFTs
+        {alertCount > 0 && (
+          <span className="tab-nav__badge">{alertCount}</span>
         )}
+      </button>
+      <button
+        className={`tab-nav__item${activeTab === 'settings' ? ' tab-nav__item--active' : ''}`}
+        onClick={() => onTabChange('settings')}
+      >
+        <GearIcon /> Settings
       </button>
     </div>
   );

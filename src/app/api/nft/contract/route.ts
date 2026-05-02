@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getContractMetadata, getNFTsForContract } from '@/lib/alchemy';
+import { getContractMetadata, getNFTsForContract, type Chain } from '@/lib/alchemy';
+
+const VALID_CHAINS: Chain[] = ['base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
 
 export async function GET(request: NextRequest) {
   const address = request.nextUrl.searchParams.get('address');
+  const chainParam = request.nextUrl.searchParams.get('chain') || 'base';
+  const chain = VALID_CHAINS.includes(chainParam as Chain) ? (chainParam as Chain) : 'base';
 
   if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
     return NextResponse.json(
@@ -13,13 +17,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const [metadata, nfts] = await Promise.all([
-      getContractMetadata(address),
-      getNFTsForContract(address, 4),
+      getContractMetadata(address, chain),
+      getNFTsForContract(address, 4, chain),
     ]);
 
     if (!metadata || metadata.tokenType === 'NOT_A_CONTRACT') {
       return NextResponse.json(
-        { error: 'Not a valid NFT contract on Base' },
+        { error: `Not a valid NFT contract on ${chain}` },
         { status: 404 }
       );
     }

@@ -8,6 +8,7 @@ interface FarcasterContext {
   username?: string;
   displayName?: string;
   pfpUrl?: string;
+  walletAddress?: string;
 }
 
 export function useFarcasterSDK() {
@@ -21,11 +22,27 @@ export function useFarcasterSDK() {
         // Get context from the Farcaster client
         const ctx = await sdk.context;
         if (ctx?.user) {
+          let walletAddress: string | undefined;
+
+          // Get wallet address via EIP-1193 provider
+          try {
+            const provider = sdk.wallet.ethProvider;
+            if (provider) {
+              const accounts = await provider.request({ method: 'eth_requestAccounts' }) as string[];
+              if (accounts && accounts.length > 0) {
+                walletAddress = accounts[0];
+              }
+            }
+          } catch (e) {
+            console.log('Wallet provider not available:', e);
+          }
+
           setContext({
             fid: ctx.user.fid,
             username: ctx.user.username,
             displayName: ctx.user.displayName,
             pfpUrl: ctx.user.pfpUrl,
+            walletAddress,
           });
           setIsInFrame(true);
         }

@@ -6,9 +6,10 @@ import { formatETH } from '@/lib/formatters';
 interface TopCollectionsProps {
   collections: TopCollection[];
   loading: boolean;
+  onCollectionClick?: (c: TopCollection) => void;
 }
 
-export default function TopCollections({ collections, loading }: TopCollectionsProps) {
+export default function TopCollections({ collections, loading, onCollectionClick }: TopCollectionsProps) {
   if (loading) {
     return (
       <div className="collections__list">
@@ -41,7 +42,12 @@ export default function TopCollections({ collections, loading }: TopCollectionsP
         const rankClass = rank <= 3 ? ` collection-row__rank--${rank}` : '';
 
         return (
-          <div key={c.id} className="collection-row">
+          <div
+            key={c.id}
+            className="collection-row"
+            onClick={() => onCollectionClick?.(c)}
+            style={{ cursor: onCollectionClick ? 'pointer' : undefined }}
+          >
             <div className={`collection-row__rank${rankClass}`}>{rank}</div>
             {c.image ? (
               <img

@@ -122,3 +122,96 @@ export async function getWatchersForContract(
   );
   return fids.map(Number);
 }
+
+// ─── Alchemy Webhook NFT Filter Management ───
+
+const ALCHEMY_NOTIFY_URL = 'https://dashboard.alchemy.com/api/update-webhook-nft-filters';
+
+function getAlchemyAuthToken(): string {
+  return process.env.ALCHEMY_AUTH_TOKEN || '';
+}
+
+function getAlchemyWebhookId(): string {
+  return process.env.ALCHEMY_WEBHOOK_ID || '';
+}
+
+/**
+ * Add contract addresses to the Alchemy NFT Activity webhook filter.
+ * Only contracts in the filter will trigger webhook events.
+ */
+export async function addWebhookFilters(contractAddresses: string[]): Promise<boolean> {
+  const authToken = getAlchemyAuthToken();
+  const webhookId = getAlchemyWebhookId();
+  if (!authToken || !webhookId || contractAddresses.length === 0) return false;
+
+  try {
+    const filters = contractAddresses.map(addr => ({
+      contract_address: addr.toLowerCase(),
+    }));
+
+    const res = await fetch(ALCHEMY_NOTIFY_URL, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Alchemy-Token': authToken,
+      },
+      body: JSON.stringify({
+        webhook_id: webhookId,
+        nft_filters_to_add: filters,
+        nft_filters_to_remove: [],
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Alchemy add filters error (${res.status}):`, errorText);
+      return false;
+    }
+
+    console.log(`Alchemy: added ${contractAddresses.length} filter(s)`);
+    return true;
+  } catch (error) {
+    console.error('Alchemy add filters failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Remove contract addresses from the Alchemy NFT Activity webhook filter.
+ */
+export async function removeWebhookFilters(contractAddresses: string[]): Promise<boolean> {
+  const authToken = getAlchemyAuthToken();
+  const webhookId = getAlchemyWebhookId();
+  if (!authToken || !webhookId || contractAddresses.length === 0) return false;
+
+  try {
+    const filters = contractAddresses.map(addr => ({
+      contract_address: addr.toLowerCase(),
+    }));
+
+    const res = await fetch(ALCHEMY_NOTIFY_URL, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Alchemy-Token': authToken,
+      },
+      body: JSON.stringify({
+        webhook_id: webhookId,
+        nft_filters_to_add: [],
+        nft_filters_to_remove: filters,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Alchemy remove filters error (${res.status}):`, errorText);
+      return false;
+    }
+
+    console.log(`Alchemy: removed ${contractAddresses.length} filter(s)`);
+    return true;
+  } catch (error) {
+    console.error('Alchemy remove filters failed:', error);
+    return false;
+  }
+}

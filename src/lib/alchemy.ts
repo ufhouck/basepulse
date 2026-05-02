@@ -1,9 +1,29 @@
-// Alchemy NFT API v3 client for Base chain
+// Alchemy NFT API v3 client — multi-chain support
 
-const ALCHEMY_BASE_URL = 'https://base-mainnet.g.alchemy.com/nft/v3';
+export type Chain = 'base' | 'ethereum' | 'polygon' | 'arbitrum' | 'optimism';
+
+const CHAIN_URLS: Record<Chain, string> = {
+  base: 'https://base-mainnet.g.alchemy.com/nft/v3',
+  ethereum: 'https://eth-mainnet.g.alchemy.com/nft/v3',
+  polygon: 'https://polygon-mainnet.g.alchemy.com/nft/v3',
+  arbitrum: 'https://arb-mainnet.g.alchemy.com/nft/v3',
+  optimism: 'https://opt-mainnet.g.alchemy.com/nft/v3',
+};
+
+export const CHAIN_LABELS: Record<Chain, string> = {
+  base: 'Base',
+  ethereum: 'Ethereum',
+  polygon: 'Polygon',
+  arbitrum: 'Arbitrum',
+  optimism: 'Optimism',
+};
 
 function getApiKey(): string {
   return process.env.ALCHEMY_API_KEY || '';
+}
+
+function getBaseUrl(chain: Chain = 'base'): string {
+  return CHAIN_URLS[chain];
 }
 
 export interface ContractMetadata {
@@ -41,10 +61,10 @@ export interface NFTToken {
 }
 
 // Get contract-level metadata
-export async function getContractMetadata(contractAddress: string): Promise<ContractMetadata | null> {
+export async function getContractMetadata(contractAddress: string, chain: Chain = 'base'): Promise<ContractMetadata | null> {
   try {
     const res = await fetch(
-      `${ALCHEMY_BASE_URL}/${getApiKey()}/getContractMetadata?contractAddress=${contractAddress}`,
+      `${getBaseUrl(chain)}/${getApiKey()}/getContractMetadata?contractAddress=${contractAddress}`,
       { next: { revalidate: 300 } }
     );
 
@@ -63,11 +83,12 @@ export async function getContractMetadata(contractAddress: string): Promise<Cont
 // Get NFTs for a contract (first few for preview)
 export async function getNFTsForContract(
   contractAddress: string,
-  limit = 4
+  limit = 4,
+  chain: Chain = 'base'
 ): Promise<NFTToken[]> {
   try {
     const res = await fetch(
-      `${ALCHEMY_BASE_URL}/${getApiKey()}/getNFTsForContract?contractAddress=${contractAddress}&limit=${limit}&withMetadata=true`,
+      `${getBaseUrl(chain)}/${getApiKey()}/getNFTsForContract?contractAddress=${contractAddress}&limit=${limit}&withMetadata=true`,
       { next: { revalidate: 300 } }
     );
 
@@ -98,25 +119,32 @@ export interface OwnerCollection {
   collectionSlug: string | null;
 }
 
+export interface OwnerResult {
+  collections: OwnerCollection[];
+  pageKey: string | null;
+}
+
 // Get NFT collections owned by a wallet address
 export async function getNFTsForOwner(
   ownerAddress: string,
-): Promise<OwnerCollection[]> {
+  chain: Chain = 'base',
+  pageKey?: string
+): Promise<OwnerResult> {
   try {
-    const res = await fetch(
-      `${ALCHEMY_BASE_URL}/${getApiKey()}/getContractsForOwner?owner=${ownerAddress}&pageSize=50`,
-      { next: { revalidate: 60 } }
-    );
+    let url = `${getBaseUrl(chain)}/${getApiKey()}/getContractsForOwner?owner=${ownerAddress}&pageSize=100`;
+    if (pageKey) url += `&pageKey=${pageKey}`;
+
+    const res = await fetch(url, { next: { revalidate: 60 } });
 
     if (!res.ok) {
       console.error('Alchemy getContractsForOwner error:', res.status);
-      return [];
+      return { collections: [], pageKey: null };
     }
 
     const data = await res.json();
     const contracts = data?.contracts || [];
 
-    return contracts.map((c: Record<string, unknown>) => {
+    const collections = contracts.map((c: Record<string, unknown>) => {
       const opensea = (c.openSeaMetadata || {}) as Record<string, unknown>;
       return {
         contractAddress: c.address as string,
@@ -128,9 +156,11 @@ export async function getNFTsForOwner(
         collectionSlug: (opensea.collectionSlug as string) || null,
       };
     }).filter((c: OwnerCollection) => c.totalBalance > 0);
+
+    return { collections, pageKey: data?.pageKey || null };
   } catch (error) {
     console.error('Failed to fetch NFTs for owner:', error);
-    return [];
+    return { collections: [], pageKey: null };
   }
 }
 

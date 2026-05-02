@@ -61,13 +61,13 @@ export function useContractSearch() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = useCallback(async (address: string) => {
+  const search = useCallback(async (address: string, chain: string = 'base') => {
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const res = await fetch(`/api/nft/contract?address=${address}`);
+      const res = await fetch(`/api/nft/contract?address=${address}&chain=${chain}`);
       const data = await res.json();
 
       if (!res.ok) {
