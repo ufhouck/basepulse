@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { parseWebhookEvent, verifyAppKeyWithNeynar } from '@farcaster/miniapp-node';
 import {
   saveNotificationToken,
   removeNotificationToken,
@@ -7,72 +8,61 @@ import {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { header, payload, signature } = body;
 
-    if (!header || !payload || !signature) {
+    console.log('Webhook received:', JSON.stringify(body).slice(0, 200));
+
+    // Parse and verify the webhook event using the official SDK
+    let data;
+    try {
+      data = await parseWebhookEvent(body, verifyAppKeyWithNeynar);
+    } catch (e: unknown) {
+      const error = e as Error;
+      console.error('Webhook verification failed:', error.name, error.message);
+      // Return 200 to avoid retries for invalid events
       return NextResponse.json(
-        { error: 'Invalid webhook format' },
-        { status: 400 }
+        { error: 'Verification failed', detail: error.name },
+        { status: 200 }
       );
     }
 
-    // Decode the payload to get the event data
-    let eventData: {
-      event: string;
-      notificationDetails?: { url: string; token: string };
-    };
+    const { fid, event } = data;
+    console.log(`Webhook verified: event=${event.event}, FID=${fid}`);
 
-    try {
-      // The payload is base64url encoded JSON
-      const payloadStr = Buffer.from(payload, 'base64url').toString('utf-8');
-      eventData = JSON.parse(payloadStr);
-    } catch {
-      // Try parsing body directly if it has event field
-      if (body.event) {
-        eventData = body;
-      } else {
-        return NextResponse.json(
-          { error: 'Invalid payload' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Decode header to get FID
-    let fid: number | undefined;
-    try {
-      const headerStr = Buffer.from(header, 'base64url').toString('utf-8');
-      const headerData = JSON.parse(headerStr);
-      fid = headerData.fid;
-    } catch {
-      // FID extraction failed
-    }
-
-    console.log(`Webhook event: ${eventData.event}, FID: ${fid}`);
-
-    switch (eventData.event) {
+    switch (event.event) {
       case 'miniapp_added':
-      case 'notifications_enabled':
-        if (fid && eventData.notificationDetails) {
+        if (event.notificationDetails) {
           await saveNotificationToken(
             fid,
-            eventData.notificationDetails.token,
-            eventData.notificationDetails.url
+            event.notificationDetails.token,
+            event.notificationDetails.url
           );
           console.log(`Saved notification token for FID ${fid}`);
+        } else {
+          console.log(`FID ${fid} added app but no notification details (notifications not granted)`);
         }
+        break;
+
+      case 'notifications_enabled':
+        await saveNotificationToken(
+          fid,
+          event.notificationDetails.token,
+          event.notificationDetails.url
+        );
+        console.log(`Notifications enabled for FID ${fid}`);
         break;
 
       case 'miniapp_removed':
+        await removeNotificationToken(fid);
+        console.log(`Removed notification token for FID ${fid} (app removed)`);
+        break;
+
       case 'notifications_disabled':
-        if (fid) {
-          await removeNotificationToken(fid);
-          console.log(`Removed notification token for FID ${fid}`);
-        }
+        await removeNotificationToken(fid);
+        console.log(`Notifications disabled for FID ${fid}`);
         break;
 
       default:
-        console.log(`Unknown webhook event: ${eventData.event}`);
+        console.log(`Unknown webhook event: ${(event as { event: string }).event}`);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

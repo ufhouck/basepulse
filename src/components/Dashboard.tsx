@@ -25,7 +25,7 @@ const RefreshIcon = () => (
 );
 
 export default function Dashboard() {
-  const { isReady, context, isInFrame } = useFarcasterSDK();
+  const { isReady, context, isInFrame, notificationsEnabled } = useFarcasterSDK();
   const { collections, loading: collectionsLoading, refetch: refetchCollections } = useCollections();
   const { items: watchlistItems, add: addWatchlistItem, remove: removeWatchlistItem, check: checkWatchlistItem } = useWatchlist();
   const [refreshing, setRefreshing] = useState(false);
@@ -153,6 +153,7 @@ export default function Dashboard() {
           pfpUrl={context?.pfpUrl}
           walletAddress={walletAddress}
           isInFrame={isInFrame}
+          notificationsEnabled={notificationsEnabled}
           watchedItems={watchlistItems}
           onShare={handleShare}
         />

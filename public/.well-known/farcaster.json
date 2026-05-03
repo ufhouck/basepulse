@@ -12,6 +12,7 @@
     "tags": ["nft", "base", "analytics", "tracker", "defi"],
     "requiredChains": ["eip155:8453"]
   },
+  "webhookUrl": "https://basepulse-alpha.vercel.app/api/webhook",
   "accountAssociation": {
     "header": "eyJmaWQiOjI0NTg2MiwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGRiOEQ0MGYzZjEzYjA5MzJkYTAwMDdiMGE5ODFlM2NBMUE4OTY1RDYifQ",
     "payload": "eyJkb21haW4iOiJiYXNlcHVsc2UtYWxwaGEudmVyY2VsLmFwcCJ9",

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { saveNotificationToken, removeNotificationToken } from '@/lib/notifications';
+import { saveNotificationToken, removeNotificationToken, getNotificationToken } from '@/lib/notifications';
 
 export async function POST(request: Request) {
   try {
@@ -11,9 +11,33 @@ export async function POST(request: Request) {
     }
 
     await saveNotificationToken(Number(fid), token, url);
+    console.log(`Notification token saved via API for FID ${fid}`);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Save notification token error:', error);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const fid = searchParams.get('fid');
+
+    if (!fid) {
+      return NextResponse.json({ error: 'Missing fid' }, { status: 400 });
+    }
+
+    const tokenData = await getNotificationToken(Number(fid));
+    return NextResponse.json({
+      hasToken: !!tokenData,
+      fid: Number(fid),
+      tokenPreview: tokenData ? `${tokenData.token.slice(0, 8)}...` : null,
+      url: tokenData?.url || null,
+      enabledAt: tokenData?.enabledAt || null,
+    });
+  } catch (error) {
+    console.error('Get notification token error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

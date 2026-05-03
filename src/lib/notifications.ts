@@ -62,7 +62,10 @@ export async function sendNotification(
   }
 ): Promise<boolean> {
   const tokenData = await getNotificationToken(fid);
-  if (!tokenData) return false;
+  if (!tokenData) {
+    console.log(`No notification token found for FID ${fid}`);
+    return false;
+  }
 
   try {
     const response = await fetch(tokenData.url, {
@@ -79,8 +82,31 @@ export async function sendNotification(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(`Notification failed for FID ${fid}:`, errorData);
+      console.error(`Notification failed for FID ${fid} (HTTP ${response.status}):`, errorData);
       return false;
+    }
+
+    // Parse Farcaster notification response
+    const result = await response.json().catch(() => null);
+
+    if (result?.result) {
+      const { successfulTokens, invalidTokens, rateLimitedTokens } = result.result;
+
+      if (invalidTokens?.length > 0) {
+        console.warn(`Invalid token for FID ${fid} — removing from KV`);
+        await removeNotificationToken(fid);
+        return false;
+      }
+
+      if (rateLimitedTokens?.length > 0) {
+        console.warn(`Rate limited for FID ${fid} — notification not sent`);
+        return false;
+      }
+
+      if (successfulTokens?.length > 0) {
+        console.log(`Notification sent to FID ${fid} ✓`);
+        return true;
+      }
     }
 
     return true;

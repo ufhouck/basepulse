@@ -11,6 +11,7 @@ interface SettingsPageProps {
   pfpUrl?: string;
   walletAddress: string | null;
   isInFrame: boolean;
+  notificationsEnabled: boolean;
   watchedItems: WatchlistItem[];
   onShare: () => void;
 }
@@ -22,6 +23,7 @@ export default function SettingsPage({
   pfpUrl,
   walletAddress,
   isInFrame,
+  notificationsEnabled,
   watchedItems,
   onShare,
 }: SettingsPageProps) {
@@ -112,7 +114,11 @@ export default function SettingsPage({
           <div className="settings-row">
             <div className="settings-row__label">Push Notifications</div>
             <div className="settings-row__value">
-              {isInFrame ? '✅ Enabled via Farcaster' : '❌ Requires Farcaster'}
+              {!isInFrame
+                ? '❌ Requires Farcaster'
+                : notificationsEnabled
+                  ? '✅ Enabled'
+                  : '⚠️ Not enabled — re-add the app'}
             </div>
           </div>
           {watchedItems.length > 0 && (
